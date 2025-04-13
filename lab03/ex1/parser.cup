@@ -28,7 +28,11 @@ terminal INT_TYPE, DOUBLE_TYPE;
 
 
 // Non terminal tokens
-non terminal prog;
+non terminal prog , var_decs, var_dec, vl, vtk, id;
+non terminal inizs, iniz, var, vt;
+non terminal while_exp, while_cond, while_body, sign, side, op;
+non terminal if_exp, if_cond, if_body, instrs, instr;
+non terminal print_exp;
 
 
 //////////////////////////////////////
@@ -37,4 +41,34 @@ non terminal prog;
 
 start with prog;
 
-prog ::= ;
+prog ::= var_decs instrs;
+
+//
+var_decs ::= var_dec | var_decs var_dec;
+var_dec ::= vtk vl S;
+vtk ::= INT_TYPE | DOUBLE_TYPE;
+vl ::= id | vl CM id; 
+id ::= ID | ID SO INT SC;
+
+//
+instrs ::= instr | instrs instr;
+instr ::= iniz | while_exp | if_exp | print_exp;
+
+//
+iniz ::= var EQ vt S;
+var ::= ID | ID SO INT SC | ID SO ID SC;
+vt ::= INT | DOUBLE | MINUS DOUBLE | var | var op INT;
+
+//
+while_exp ::= WHILE RO while_cond RC BO instrs BC;
+while_cond ::= side sign side;
+sign ::= EQ EQ | MIN | MAJ | MIN_EQ | EQ_MIN | MAJ_EQ | EQ_MAJ; 
+side ::= var | INT | DOUBLE | var op var | var op INT | INT op var ;
+op ::= PLUS | MINUS;
+
+//
+if_exp ::= IF RO if_cond RC BO instrs BC;
+if_cond ::= side sign side;
+
+//
+print_exp ::= PRINT RO vl RC S;
