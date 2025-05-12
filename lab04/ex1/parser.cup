@@ -1,0 +1,74 @@
+import java_cup.runtime.*;
+import java.util.*;
+import java.io.*;
+
+
+init with{:
+    table = new HashMap <String, HashMap <String, Double>>();
+:};
+
+parser code {:
+    public HashMap <String, HashMap <String, Double>> table;
+
+    public Object stack(int position){
+        return (((Symbol)stack.elementAt(tos + position)).value);
+    }
+:};
+
+
+/////////////////////////////
+//// Symbols Delaration
+////////////////////////////
+
+// terminal TOK1, TOK2, SEP;
+terminal DOT, DASH, QDASH, OP, CP, CM, CO, EXM, ATOM, VAR;
+// terminal String test;
+// terminal Double test;
+// terminal Integer test;
+
+non terminal prog, SECTIONS;
+non terminal FACTS, RULES, INTER, PREDICATES, PREDICATE,
+             RULE, FUNCTOR, ARG, ARGS;
+// non terminal ;
+// non terminal String ;
+// non terminal HashMap ;
+// non terminal Integer ;
+// non terminal Double ;
+
+// precedence left ;
+
+/////////////////////////////
+//// Grammar
+////////////////////////////
+
+start with prog;
+
+prog ::= SECTIONS INTER SECTIONS
+;
+
+SECTIONS ::= SECTIONS FACTS | SECTIONS RULE | FACTS | RULE
+;
+
+FACTS ::= PREDICATE DOT
+;
+
+RULE ::= PREDICATE CO DASH PREDICATES DOT
+;
+
+INTER ::= QDASH PREDICATES DOT
+;
+
+PREDICATES ::= PREDICATES CM PREDICATE | PREDICATE
+;
+
+PREDICATE ::= FUNCTOR ARGS CP | ATOM
+;
+
+FUNCTOR ::= ATOM OP 
+;
+
+ARGS ::= ARGS CM ARG | ARG
+;
+
+ARG ::= PREDICATE | VAR
+;
