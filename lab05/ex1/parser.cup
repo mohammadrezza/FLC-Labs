@@ -1,0 +1,100 @@
+import java_cup.runtime.*;
+import java.util.*;
+import java.io.*;
+
+
+init with{:
+    symbolTable = new HashMap<String, Float>();
+:};
+
+parser code {:
+     public HashMap <String, Float>symbolTable;
+
+    public Object stack(int position){
+        return (((Symbol)stack.elementAt(tos + position)).value);
+    }
+:};
+
+
+/////////////////////////////
+//// Symbols Delaration
+////////////////////////////
+
+// terminal TOK1, TOK2, SEP;
+// terminal TOK1, TOK2, TOK3, SEP;
+terminal OB, CB, PLUS, STAR, EQ, DOT, SC, SL, DASH, QUM, CIM, CM, OP, CP;
+terminal String SCA_VAR, VEC_VAR;
+terminal Double FNUM;
+terminal Integer SINUM;
+
+non terminal prog ;
+// non terminal HEADER ;
+non terminal LINES, LINE, ASS, EXP;
+non terminal SCA_REAL, VEC;
+non terminal SCA_ASS, SCA_EXP, VEC_ASS, VEC_EXP;
+// non terminal ;
+// non terminal String ;
+// non terminal HashMap ;
+// non terminal Integer ;
+// non terminal Double ;
+
+//ˆ∗/. + −
+precedence left PLUS,DASH;
+precedence left STAR, SL;
+precedence left CIM;
+
+/////////////////////////////
+//// Grammar
+////////////////////////////
+
+start with prog;
+
+prog ::= LINES QUM
+;
+
+LINES ::= LINES LINE SC | LINE SC
+;
+
+LINE ::= SCA_ASS | SCA_EXP | VEC_ASS | VEC_EXP
+;
+
+//
+
+SCA_REAL ::= FNUM | SINUM
+;
+
+VEC ::= OB SCA_REAL CM SCA_REAL CB |
+        OB SCA_VAR CM SCA_VAR CB |
+        OB SCA_REAL CM SCA_VAR CB |
+        OB SCA_VAR CM SCA_REAL CB   
+;
+
+// scala
+
+SCA_ASS ::= SCA_VAR EQ SCA_EXP
+;
+
+SCA_EXP ::= SCA_EXP PLUS SCA_EXP |
+            SCA_EXP DASH SCA_EXP |
+            SCA_EXP STAR SCA_EXP |
+            SCA_EXP SL SCA_EXP |
+            VEC_EXP DOT VEC_EXP |
+
+            DASH SCA_EXP  |
+            OP SCA_EXP CP |
+            SCA_REAL |
+            SCA_VAR
+;
+
+// vec
+
+VEC_ASS ::= VEC_VAR EQ VEC_EXP
+;
+
+VEC_EXP ::= VEC_EXP PLUS VEC_EXP |
+            VEC_EXP DASH VEC_EXP |
+            SCA_EXP STAR VEC_EXP |
+            SCA_EXP  SL VEC_EXP |
+            VEC_VAR |
+            VEC 
+;
