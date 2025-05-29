@@ -4,6 +4,9 @@ import java.io.*;
 
 
 parser code {:
+    public Object stack(int position){
+        return (((Symbol)stack.elementAt(tos + position)).value);
+    }
 
     public boolean isCorrect = true;
 
@@ -60,10 +63,11 @@ action code {:
 
 
 // Terminal tokens
-terminal INT, DOUBLE;
+terminal Integer INT;
+terminal DOUBLE;
 
 terminal PRINT, IF, WHILE, ELSE;
-terminal ID;
+terminal String ID;
 terminal RO, RC, BO, BC, S, CM, SO, SC;
 terminal PLUS, MINUS, STAR, DIV;
 terminal MIN, MAJ, MIN_EQ, EQ_MIN, MAJ_EQ, EQ_MAJ, EQ;
@@ -77,10 +81,12 @@ non terminal prog, stmt_list, stmt, if, while, assignment, print;
 non terminal exp;
 non terminal mineq, majeq;
 
-non terminal decl_list, decl, var_list, var;
-non terminal type, array;
+non terminal decl_list, decl; 
+non terminal Object[] var_list, var;
+non terminal String type;
+non terminal Integer array;
 non terminal if_condition, while_condition;
-non terminal id;
+non terminal String id;
 
 // Precedences and associativities
 // lower precedences
@@ -112,21 +118,59 @@ prog ::= decl_list stmt_list {: if (parser.isCorrect) System.out.println("Progra
 decl_list ::= decl_list decl |
 ;
 
-decl ::= type var_list S
+decl ::= type:type var_list:var S
+{: 
+// System.out.println(type+" "+var[0]+ "[" +var[1] +"]");
+:}
     | type error S {: pSynWarning("Error in declaration"); :}
 ;
 
-type ::= INT_TYPE | DOUBLE_TYPE
+type ::= INT_TYPE
+{: 
+RESULT = "INT";
+:}
+ | DOUBLE_TYPE
+{:
+ RESULT = "DOUBLE";
+:}
 ;
 
-var_list ::= var 
-    | var_list CM var
+var_list ::= var:var
+{: 
+    String typ = (String)parser.stack(-1);
+    if(var[1]!=null){
+    System.out.println(typ + " " + var[0]+ "[" +var[1] +"]");
+    }else{
+    System.out.println(typ + " " + var[0]);
+    }
+:} 
+    | var_list CM var:var
+{:
+    String typ = (String)parser.stack(-3);
+    if(var[1]!=null){
+    System.out.println(typ + " " + var[0]+ "[" +var[1] +"]");
+    }else{
+    System.out.println(typ + " " + var[0]);
+    }
+:}
 ;
 
-var ::= ID array
+var ::= ID:id array:arr
+{: 
+   Object[] res = new Object[2];
+   res[0] = new String(id);
+   if(arr != null){
+   res[1] = new Integer(arr);
+   }
+   RESULT = res;
+:}
 ;
 
-array ::= | array SO INT SC
+array ::=
+ {:
+RESULT = null;
+:} | array SO INT:res SC
+{: RESULT = res; :}
 ;
 
 
