@@ -1,0 +1,217 @@
+import java_cup.runtime.*;
+import java.util.*;
+import java.io.*;
+
+
+init with{:
+    table = new HashMap <String, HashMap <String, Integer>>();
+:};
+
+parser code {:
+    public HashMap <String, HashMap <String, Integer>> table;
+
+    public Object stack(int position){
+        return (((Symbol)stack.elementAt(tos + position)).value);
+    }
+
+    public void printStatck(){
+        System.out.println("---Stack---");
+        for(int position=0; position<6; position++){
+            Object obj = (((Symbol)stack.elementAt(tos + -position)).value);
+            System.out.println("Element: " + obj + " At position: " + -position );
+        }
+    }
+:};
+
+// expression
+// exp ::= exp:el PLUS exp:er {: RESULT = el + er; :} |
+// exp:el DASH exp:er {: RESULT = el - er; :} |
+// exp:el STAR exp:er {: RESULT = el * er; :} |
+// exp:el SL exp:er {: RESULT = el / er; :} |
+// DASH exp:e  {: RESULT = -e; :}  |
+// OP exp:e CP {: RESULT = e; :} |
+// INUM:inum {: RESULT = inum; :}
+// ;
+
+/////////////////////////////
+//// Symbols Delaration
+////////////////////////////
+
+// terminal QUM;
+// terminal EXM;
+// terminal ATM;
+// terminal HAM;
+// terminal DOM;
+// terminal PAM;
+// terminal CIM;
+// terminal AND;
+terminal STAR;
+terminal DASH;
+terminal EQ;
+terminal PLUS;
+terminal OP;
+terminal CP;
+// terminal OB;
+// terminal CB;
+// terminal OC;
+// terminal CC;
+terminal GT;
+// terminal LT;
+terminal SL;
+// terminal BSL;
+// terminal DOT;
+terminal CO;
+terminal CM;
+terminal SC;
+// terminal QU;
+// terminal DQU;
+// terminal GRAVE;
+// terminal TIL;
+// terminal OR;
+// terminal US;
+
+terminal String VAR;
+// terminal String QSTRING;
+// terminal Double FNUM;
+terminal Integer INUM;
+// terminal Integer SINUM;
+
+// terminal TOKEN1, TOKEN2, SEP;
+// terminal TOKEN1, TOKEN2, TOKEN3, SEP;
+// terminal String ;
+terminal SEP;
+
+
+non terminal prog;
+// non terminal header, TOK1, TOK2;
+non terminal types, type, descs, desc;
+// non terminal ;
+non terminal HashMap attr_list, attrs;
+// non terminal ;
+non terminal String sentence;
+non terminal Object[] attr, val;
+non terminal Integer symbl, vals;
+// non terminal Double ;
+
+// precedence left PLUS, DASH;
+// precedence left STAR, SL;
+// precedence left CIM;
+
+/////////////////////////////
+//// Grammar
+////////////////////////////
+
+start with prog;
+
+prog ::= types SEP descs
+;
+
+// types
+
+types ::= type types | type
+;
+
+type ::= OP attr_list:attr_list CP DASH GT VAR:prod_name
+{:
+    parser.table.put(prod_name, attr_list);
+:}
+;
+
+attr_list ::= attrs:x
+{:
+RESULT = x;
+:}  
+;
+
+attrs ::= attrs:attrs CM attr:attr
+{:
+    attrs.put(attr[0], attr[1]);
+    RESULT = attrs;
+:}
+ | attr:attr
+ {:
+    RESULT = new HashMap<String,Integer>();
+    RESULT.put(attr[0], attr[1]);
+ :}
+;
+
+attr ::= VAR:attr_name CO INUM:attr_weight
+{:
+    RESULT = new Object[2];
+    RESULT[0] = new String(attr_name);
+    RESULT[1] = new Integer(attr_weight);
+:}
+;
+
+
+// desc
+
+descs ::= desc descs | desc
+;
+
+desc ::= VAR:prod_name CO vals:score EQ sentence:sentence
+{:
+
+    System.out.println(sentence + ", " + score);
+:}
+ SC
+;
+
+vals ::= vals:vals CM val:val
+{:
+    String prod_name = (String)parser.stack(-4);
+    Integer sym = (Integer)val[0];
+    String attr = (String)val[1];
+    HashMap<String,Integer> typeWeight = parser.table.get(prod_name);
+    Integer v = typeWeight.get(attr);
+    Integer score = v * sym;
+    RESULT = score + vals;
+    
+:}
+| val:val
+{:
+    String prod_name = (String)parser.stack(-2);
+    Integer sym = (Integer)val[0];
+    String attr = (String)val[1];
+    HashMap<String,Integer> typeWeight = parser.table.get(prod_name);
+    Integer v = typeWeight.get(attr);
+    Integer score = v * sym;
+    RESULT = score;
+:}
+;
+
+val ::= symbl:symbl VAR:var
+{:
+    RESULT = new Object[2];
+    RESULT[0] = new Integer(symbl);
+    RESULT[1] = new String(var);
+:}
+;
+
+symbl ::= STAR
+{:
+ RESULT = 3;
+:}
+| PLUS
+{:
+ RESULT = 2;
+:}
+| DASH
+{:
+ RESULT = 0;
+:}
+| SL
+{:
+ RESULT = 1;
+:}
+;
+
+sentence ::= VAR:var sentence:sentence
+{:
+RESULT = var + " " +  sentence;
+:}
+| VAR:var
+{:
+RESULT = var; 
+:}
+;
